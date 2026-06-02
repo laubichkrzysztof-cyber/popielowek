@@ -472,7 +472,7 @@ const DS = {
 
 /* ═══════════════════════════════════════════════════════════════════════════ AUTH */
 const AUTH = {
-  U:'admin', P:'popielowek2026',
+  U:'admin', P:'Furjonsjo1978@',
   ok()    { return localStorage.getItem('admin_auth')==='true'; },
   login(u,p){ if(u===this.U&&p===this.P){ localStorage.setItem('admin_auth','true'); DS.log('Logowanie','admin'); return true; } return false; },
   logout(){ localStorage.removeItem('admin_auth'); location.reload(); }
