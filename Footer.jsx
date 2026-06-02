@@ -134,6 +134,17 @@ const Footer = () => {
           border-bottom: none !important;
           text-decoration: none !important;
         }
+        .footer-admin-link {
+          font-size: 9px;
+          letter-spacing: .12em;
+          color: rgba(200,180,140,.2);
+          text-decoration: none;
+          transition: color 300ms ease;
+          margin-left: 16px;
+        }
+        .footer-admin-link:hover {
+          color: rgba(200,160,80,.5);
+        }
         @media (max-width: 768px) {
           .ft-zone1 {
             grid-template-columns: 1fr !important;
@@ -201,6 +212,11 @@ const Footer = () => {
         >
           ↑ NA GÓRĘ
         </button>
+        <a
+          href="admin.html"
+          className="footer-admin-link"
+          aria-label="Panel administratora"
+        >Admin</a>
       </div>
     </footer>
   );
