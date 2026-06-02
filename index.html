@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Popielówek — Żywe Archiwum</title>
+  <link rel="stylesheet" href="colors_and_type.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    /* ── Website-level background upgrade ──────────────────────────────────
+       Override --parchment-100 for this page only (DS source unchanged).
+       Old value: #E3DACB  New value: #DED5C5 (warm linen, +5pts richness)
+       Contrast: #2c2010 → 10.86:1 ✓  #705840 (fg-muted) → 4.54:1 ✓ WCAG AA
+    ── */
+    :root {
+      --parchment-100: #DED5C5;
+    }
+    html, body { margin: 0; padding: 0; background: var(--parchment-100); color: var(--fg); font-family: var(--font-sans); }
+    body { overflow-x: hidden; }
+    /* Nav burger hidden on desktop; shown via @media below */
+    .nav-burger { display: none; }
+    * { box-sizing: border-box; }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; }
+    input, select, textarea { font-family: var(--font-sans); }
+    input::placeholder, textarea::placeholder { color: var(--stone-400); font-family: var(--font-italic); font-style: italic; }
+  </style>
+  <style id="btn-archival">
+    /* ── Unified archival pill button ─────────────────────────────────────── */
+    .btn-archival {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(245,238,218,.35);
+      border: 1px solid rgba(90,70,30,.35);
+      border-radius: 999px;
+      padding: 10px 22px;
+      min-height: 44px;
+      font-family: var(--font-sans);
+      font-size: 11px; font-weight: 400;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: #3a2e1a;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 220ms ease-out, border-color 220ms ease-out, color 220ms ease-out, transform 220ms ease-out, box-shadow 220ms ease-out;
+      -webkit-font-smoothing: antialiased;
+    }
+    .btn-archival:hover {
+      background: rgba(138,92,32,.12);
+      border-color: rgba(138,92,32,.5);
+      color: #2c2010;
+      transform: scale(1.045);
+      box-shadow: 0 2px 8px rgba(100,80,40,.1);
+    }
+    .btn-archival:active { transform: scale(.97); transition-duration: 80ms; }
+    .btn-archival:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(138,92,32,.35);
+    }
+    /* Arrow suffix — external links and primary CTAs only */
+    .btn-archival--arrow::after { content: " ↗"; font-size: 10px; }
+    /* Dark context variant */
+    .btn-archival--dark {
+      background: rgba(255,245,220,.08);
+      border-color: rgba(200,160,90,.3);
+      color: #d4cbb0;
+    }
+    .btn-archival--dark:hover {
+      background: rgba(255,245,220,.14);
+      border-color: rgba(200,160,90,.5);
+      color: #e8dcc8;
+    }
+    .btn-archival--dark:focus-visible { box-shadow: 0 0 0 2px rgba(200,160,90,.4); }
+  </style>
+  <style id="bento-cards">
+    /* ── Shared tile system ─────────────────────────────────────────────── */
+    .bento-card, .tile-interactive, .tile-static {
+      position: relative; overflow: hidden;
+    }
+    .tile-interactive { cursor: pointer; }
+    /* Corners — .tc-c (new combined class) and legacy .tc-tl/tr/bl/br */
+    .tc-c, .tc-tl, .tc-tr, .tc-bl, .tc-br {
+      position: absolute; width: 16px; height: 16px;
+      border-color: rgba(160,120,64,0); border-style: solid;
+      transition: border-color 350ms ease, width 350ms ease, height 350ms ease;
+      pointer-events: none; z-index: 2;
+    }
+    .tc-tl { top: 8px; left: 8px;    border-width: 1.5px 0 0 1.5px;  border-radius: 3px 0 0 0; }
+    .tc-tr { top: 8px; right: 8px;   border-width: 1.5px 1.5px 0 0;  border-radius: 0 3px 0 0; }
+    .tc-bl { bottom: 8px; left: 8px; border-width: 0 0 1.5px 1.5px;  border-radius: 0 0 0 3px; }
+    .tc-br { bottom: 8px; right: 8px;border-width: 0 1.5px 1.5px 0;  border-radius: 0 0 3px 0; }
+    .tc-c.tc-tl { top: 8px; left: 8px;    border-width: 1.5px 0 0 1.5px;  border-radius: 3px 0 0 0; }
+    .tc-c.tc-tr { top: 8px; right: 8px;   border-width: 1.5px 1.5px 0 0;  border-radius: 0 3px 0 0; }
+    .tc-c.tc-bl { bottom: 8px; left: 8px; border-width: 0 0 1.5px 1.5px;  border-radius: 0 0 0 3px; }
+    .tc-c.tc-br { bottom: 8px; right: 8px;border-width: 0 1.5px 1.5px 0;  border-radius: 0 0 3px 0; }
+    .tc-line {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 1.5px;
+      background: linear-gradient(90deg, transparent 0%, rgba(160,120,64,.55) 40%, rgba(200,160,80,.75) 60%, transparent 100%);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 320ms cubic-bezier(.2,0,.1,1);
+      border-radius: 2px; pointer-events: none; z-index: 2;
+    }
+    .bento-icon {
+      display: block; position: relative; width: fit-content;
+      margin-bottom: 12px; color: rgba(138,92,32,.35);
+      transition: transform 360ms cubic-bezier(.2,0,.08,1), color 280ms ease, filter 280ms ease;
+      transform-origin: center bottom;
+      will-change: transform;
+      overflow: visible;
+    }
+    @media (hover: hover) {
+      /* Interactive: corners glow */
+      .bento-card:hover .tc-tl, .bento-card:hover .tc-tr,
+      .bento-card:hover .tc-bl, .bento-card:hover .tc-br,
+      .tile-interactive:hover .tc-c {
+        border-color: rgba(160,120,64,.75); width: 22px; height: 22px;
+      }
+      /* Bottom line — all tiles */
+      .bento-card:hover .tc-line,
+      .tile-interactive:hover .tc-line,
+      .tile-static:hover .tc-line { transform: scaleX(1); }
+      /* Icon float — interactive only */
+      .bento-card:hover .bento-icon,
+      .tile-interactive:hover .bento-icon {
+        transform: translateY(-5px) scale(1.14) rotate(-2deg);
+        color: rgba(138,92,32,.7);
+        filter: drop-shadow(0 4px 8px rgba(138,92,32,.2));
+      }
+      /* Icon float — static: subtle lift only */
+      .tile-static:hover .bento-icon {
+        transform: translateY(-2px);
+        color: rgba(138,92,32,.5);
+        filter: none;
+      }
+      /* Full lift — interactive */
+      .bento-card:hover, .tile-interactive:hover {
+        background: rgba(245,238,218,.75) !important;
+        border-color: rgba(160,120,64,.15) !important;
+        box-shadow: 0 8px 32px rgba(100,70,20,.14), 0 2px 8px rgba(160,120,64,.1) !important;
+        transform: translateY(-4px) !important;
+      }
+      /* Static: border softens only */
+      .tile-static:hover { border-color: rgba(160,120,64,.4) !important; }
+    }
+    /* Touch tap feedback */
+    @media (hover: none) {
+      .tile-interactive:active { border-color: rgba(160,120,64,.4) !important; }
+      .tile-interactive:active .tc-c { border-color: rgba(160,120,64,.5); width: 18px; height: 18px; }
+      .tile-interactive:active .tc-line { transform: scaleX(1); }
+      .tile-interactive:active .bento-icon {
+        transform: translateY(-3px) scale(1.08) rotate(-1deg);
+        color: rgba(138,92,32,.6);
+        filter: drop-shadow(0 2px 4px rgba(138,92,32,.15));
+      }
+    }
+    /* Mobile collapse */
+    @media (max-width: 768px) {
+      .bento-icon { font-size: 22px !important; }
+      .tc-c, .tc-tl, .tc-tr, .tc-bl, .tc-br { width: 14px !important; height: 14px !important; }
+    }
+  </style>
+  <style id="hero-reveal">
+    /* Hero reveal — staged cinematic entrance on first paint */
+    @keyframes revealUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes imageReveal {
+      from { opacity: 0; transform: scale(1.05); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    /* Photo — scale-based reveal */
+    .hero-photo {
+      opacity: 0;
+      transform: scale(1.05);
+      transform-origin: center center;
+      will-change: opacity, transform;
+    }
+    /* Scrims + text elements — translateY-based reveal */
+    .hero-bg, .hero-eyebrow, .hero-h1, .hero-sub, .hero-scroll {
+      opacity: 0;
+      transform: translateY(28px);
+      will-change: opacity, transform;
+    }
+    /* Stagger order: photo first (0ms), then scrims, then text */
+    body.hero-revealed .hero-photo {
+      animation: imageReveal 7000ms cubic-bezier(.22,1,.36,1) 0ms both;
+    }
+    body.hero-revealed .hero-bg {
+      animation: revealUp 900ms cubic-bezier(.4,0,.2,1) 0ms both;
+    }
+    body.hero-revealed .hero-eyebrow {
+      animation: revealUp 700ms cubic-bezier(.4,0,.2,1) 180ms both;
+    }
+    body.hero-revealed .hero-h1 {
+      animation: revealUp 800ms cubic-bezier(.16,1,.3,1) 340ms both;
+    }
+    body.hero-revealed .hero-sub {
+      animation: revealUp 700ms cubic-bezier(.4,0,.2,1) 500ms both;
+    }
+    body.hero-revealed .hero-scroll {
+      animation: revealUp 600ms cubic-bezier(.4,0,.2,1) 680ms both;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-photo, .hero-bg, .hero-eyebrow, .hero-h1, .hero-sub, .hero-scroll {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+  <style id="scroll-reveal">
+    /* Scroll reveal — editorial fade + rise */
+    .ds-reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .ds-reveal.ds-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ds-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    }
+  </style>
+  <style id="responsive">
+    /* ── RESPONSIVE LAYOUT ──────────────────────────────────────────── */
+
+    /* ── Tablet landscape ≤1024px ── */
+    @media (max-width: 1024px) {
+      .mj-layers-grid { grid-template-columns: 1fr 1fr !important; }
+      .mj-layer-card { grid-row: auto !important; grid-column: auto !important; }
+      .zb-grid { grid-template-columns: 1fr 1fr !important; }
+      .gl-period-list { grid-template-columns: 1fr 1fr !important; }
+      .ft-zone1 { grid-template-columns: 1fr 1fr !important; }
+      .ft-brand-col { grid-column: span 2; }
+    }
+
+    /* ── Tablet + Mobile ≤768px ── */
+    @media (max-width: 768px) {
+      /* Section padding */
+      #intro, #historia, #zabytki, #wydarzenia { padding: 64px 1.5rem 56px !important; }
+      #miejsca, #galeria { padding: 64px 1.5rem 56px !important; }
+      #os-czasu { padding-top: 64px !important; padding-bottom: 56px !important; }
+      #kontakt { padding: 56px 1.5rem 0 !important; }
+
+      /* Section headings */
+      #os-czasu h2, #historia h2, #zabytki h2, #miejsca h2,
+      #galeria h2, #wydarzenia h2, #kontakt h2 {
+        font-size: clamp(1.6rem, 5vw, 2.4rem) !important;
+      }
+
+      /* Navbar */
+      .nav-links { display: none !important; }
+      .nav-lang-wrap { display: none !important; }
+      .nav-burger { display: flex !important; }
+      .nav-bar { padding: 12px 1.5rem !important; }
+
+      /* Hero */
+      .hero-section { height: 85vh !important; min-height: 0 !important; }
+      .hero-content { padding: 0 1.5rem 3rem !important; grid-template-columns: 1fr !important; }
+      .hero-hotspot { display: none !important; }
+      .hero-scroll { padding: 28px 0 24px !important; }
+      .hero-h1 { font-size: clamp(2rem, 7vw, 3.5rem) !important; }
+      .hero-sub { font-size: clamp(0.85rem, 3vw, 1rem) !important; }
+
+      /* Intro */
+      .intro-inner { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+      .intro-eyebrow-col, .intro-body, .intro-aside { grid-column: 1 !important; }
+
+      /* Historia */
+      .hist-section-head { grid-template-columns: 1fr !important; }
+      .hist-section-head-inner { grid-column: 1 !important; }
+      .hist-chapter { grid-template-columns: 1fr !important; gap: 1rem !important; padding: 2rem 1.5rem !important; }
+      .hist-chapter-left { grid-column: 1 !important; display: flex !important; align-items: baseline !important; gap: 12px !important; }
+      .hist-chapter-body { grid-column: 1 !important; }
+      .hist-chapter-media { grid-column: 1 !important; }
+      .hist-placeholder { max-height: 200px !important; }
+
+      /* Zabytki */
+      .zb-header { grid-template-columns: 1fr !important; }
+      .zb-header-inner { grid-column: 1 !important; }
+      .zb-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+
+      /* Miejsca */
+      .mj-top-grid { grid-template-columns: 1fr !important; }
+      .mj-image-col { min-height: 220px !important; }
+      .mj-layers-grid { grid-template-columns: 1fr !important; }
+      .mj-layer-card { grid-row: auto !important; grid-column: auto !important; min-height: auto !important; }
+      .map-static { height: 320px !important; }
+
+      /* Galeria */
+      .gl-period-list { grid-template-columns: 1fr !important; gap: 10px !important; }
+      .gl-period-list .tile, .zb-grid .tile { padding: 1.25rem !important; }
+
+      /* Wydarzenia */
+      .wd-header { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+
+      /* Kontakt */
+      .kt-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+      .kt-left, .kt-panel-col { grid-column: 1 !important; }
+      .kt-bridge { margin-left: -1.5rem !important; margin-right: -1.5rem !important; }
+
+      /* Footer */
+      .ft-zone3 { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+      .ft-back-top { align-self: flex-end; }
+      .ft-zone1 { grid-template-columns: 1fr !important; gap: 2rem !important; padding: 2rem 1.5rem !important; }
+      .ft-brand-col { grid-column: 1 !important; }
+      .ft-zone2 { padding: 1.5rem !important; gap: 1.5rem !important; }
+      .ft-zone3 { padding: 1rem 1.5rem 1.5rem !important; }
+
+      /* Galeria circular carousel */
+      .ct-wrap { padding: 1rem !important; }
+      .ct-grid { grid-template-columns: 1fr !important; }
+      .ct-images { height: 18rem !important; overflow: hidden !important; }
+      .ct-arrows { justify-content: center !important; padding-top: 1.5rem !important; }
+
+      /* Timeline */
+      .tl-item { min-width: 130px !important; }
+      .tl-active-card { margin: 0 1rem !important; }
+    }
+
+    /* ── Mobile only ≤480px ── */
+    @media (max-width: 480px) {
+      #intro, #historia, #zabytki, #wydarzenia,
+      #miejsca, #galeria { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+      #kontakt { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+
+      .hero-section { height: 75vh !important; }
+      .hero-content { padding: 0 1.25rem 2.5rem !important; }
+
+      #os-czasu h2, #historia h2, #zabytki h2, #miejsca h2,
+      #galeria h2, #wydarzenia h2, #kontakt h2 {
+        font-size: clamp(1.4rem, 6vw, 2rem) !important;
+      }
+
+      .nav-bar { padding: 10px 1.25rem !important; }
+      .pp-logo-name { font-size: 12px !important; }
+
+      .hist-chapter { padding: 1.25rem !important; }
+      .map-static { height: 260px !important; }
+
+      .ft-zone1 { padding: 1.5rem 1.25rem !important; }
+      .ft-zone2, .ft-zone3 { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+      .kt-bridge { margin-left: -1.25rem !important; margin-right: -1.25rem !important; }
+
+      /* Timeline narrow */
+      .tl-item { min-width: 110px !important; }
+      .tl-active-card { margin: 0 0.75rem !important; }
+
+      /* Hero text clamp */
+      .hero-h1 { font-size: clamp(1.75rem, 8vw, 2.5rem) !important; }
+      .hero-sub { font-size: clamp(0.8rem, 3vw, 0.95rem) !important; }
+      /* Bento gap tight */
+      .zb-grid { gap: 8px !important; }
+      .gl-period-list { gap: 8px !important; }
+    }
+
+    /* ── Wide desktop ≥1440px ── */
+    @media (min-width: 1440px) {
+      .hero-h1 { font-size: clamp(3.5rem, 4vw, 5.5rem) !important; }
+    }
+
+    /* ── Touch device guards ── */
+    @media (hover: none) {
+      /* Historia chapters — no lift on touch */
+      [class*="hist-chapter"]:hover { transform: none !important; box-shadow: none !important; }
+      /* Zabytki cards */
+      [class*="zb-card"]:hover { transform: none !important; }
+      /* Archive period cards */
+      [class*="gl-period"]:hover { transform: none !important; box-shadow: none !important; }
+      /* Galeria arrows — always show on touch */
+      .ct-btn { opacity: 1 !important; }
+    }
+
+    /* ── Wide desktop ≥1440px ── */
+    @media (min-width: 1440px) {
+      #intro, #historia, #zabytki, #wydarzenia,
+      #kontakt, #miejsca, #galeria {
+        padding-left: 4rem !important; padding-right: 4rem !important;
+      }
+      .zb-grid { gap: 16px !important; }
+      .gl-period-list { gap: 16px !important; }
+    }
+  </style>
+</head>
+<body class="ds">
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="i18n-dict.js"></script>
+  <script src="i18n.js"></script>
+
+  <script type="text/babel" src="Icons.jsx"></script>
+  <script type="text/babel" src="Navigation.jsx"></script>
+  <script type="text/babel" src="Hero.jsx"></script>
+  <script type="text/babel" src="Intro.jsx"></script>
+  <script type="text/babel" src="OsCzasu.jsx"></script>
+  <script type="text/babel" src="Historia.jsx"></script>
+  <script type="text/babel" src="Miejsca.jsx"></script>
+  <script type="text/babel" src="Zabytki.jsx"></script>
+  <script type="text/babel" src="Galeria.jsx"></script>
+  <script type="text/babel" src="Wydarzenia.jsx"></script>
+  <script type="text/babel" src="Kontakt.jsx"></script>
+  <script type="text/babel" src="Footer.jsx"></script>
+  <script type="text/babel" src="App.jsx"></script>
+  <script>
+  /* Hero reveal — add body.hero-revealed once DOM is ready.
+     Safe whether React mounts before or after this fires: CSS animations
+     start when the animation property is first applied to an element. */
+  (function () {
+    function trigger() {
+      requestAnimationFrame(function () {
+        document.body.classList.add('hero-revealed');
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', trigger);
+    } else {
+      trigger();
+    }
+  })();
+  </script>
+
+  <script>
+  (function () {
+    var SECTIONS = ['intro','os-czasu','historia','miejsca','zabytki','galeria','wydarzenia','kontakt'];
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('ds-in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.06, rootMargin: '0px 0px -32px 0px' });
+
+    function reveal(el, delay) {
+      if (!el) return;
+      el.classList.add('ds-reveal');
+      var r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight + 20) {
+        el.classList.add('ds-in'); // already in viewport — reveal immediately
+      } else {
+        if (delay) el.style.transitionDelay = delay + 's';
+        io.observe(el);
+      }
+    }
+
+    function setup() {
+      SECTIONS.forEach(function (id) {
+        var sec = document.getElementById(id);
+        if (!sec) return;
+        var inner = sec.firstElementChild;
+        if (!inner) return;
+
+        if (id === 'os-czasu') {
+          // Header block reveals first
+          reveal(inner.children[0], 0);
+          // Dot axis row
+          if (inner.children[1]) reveal(inner.children[1], 0.15);
+          // Active card
+          if (inner.children[2]) reveal(inner.children[2], 0.3);
+        } else {
+          // Stagger the top-level content blocks within the section
+          // headline/header blocks first, body/cards/grids after
+          Array.from(inner.children).slice(0, 6).forEach(function (child, i) {
+            reveal(child, i === 0 ? 0 : parseFloat((i * 0.17).toFixed(2)));
+          });
+        }
+      });
+    }
+
+    // Poll until React has mounted the sections
+    var attempts = 0;
+    var poll = setInterval(function () {
+      if (document.getElementById('intro') || ++attempts > 40) {
+        clearInterval(poll);
+        if (document.getElementById('intro')) setup();
+      }
+    }, 100);
+  })();
+  </script>
+</body>
+</html>

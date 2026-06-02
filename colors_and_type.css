@@ -1,0 +1,171 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   POPIELÓWEK · Living Archive · Foundations
+   Cinematic European heritage editorial system.
+   Light-first · warm archival atmosphere · quiet luxury.
+   The interface should visually disappear into the landscape photography.
+   ────────────────────────────────────────────────────────────────────────── */
+
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Manrope:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap");
+
+:root {
+  /* ─── COLOR · PARCHMENT (primary surfaces · the project's two named lights) ── */
+  --parchment-50:   #F2EBDC;   /* lightest variant — elevated cards */
+  --parchment-100:  #E3DACB;   /* PRIMARY page background — the project's defining light */
+  --parchment-200:  #D2C4AE;   /* PRIMARY secondary surface — stone parchment */
+  --parchment-300:  #BFAF94;   /* hover / pressed light surfaces */
+  --parchment-400:  #A89773;
+
+  /* ─── COLOR · STONE (warm neutrals · mid-tone bridge) ────────────────── */
+  --stone-100:      #C0B5A0;
+  --stone-200:      #A39882;
+  --stone-300:      #877D68;
+  --stone-400:      #6F6655;   /* captions */
+  --stone-500:      #5C5345;   /* secondary body */
+  --stone-600:      #4A433B;   /* PROJECT DARK ACCENT — soft warm darks */
+
+  /* ─── COLOR · INK (deepest accents · warm brown, NEVER true black) ─── */
+  --ink-900:        #2A251D;   /* PROJECT DARK ACCENT — primary text */
+  --ink-800:        #34291F;
+  --ink-700:        #3F3225;
+  --ink-500:        #574737;
+  --ink-300:        #6F5E4C;
+
+  /* ─── COLOR · GOLD (museum brass · subtle, never commercial) ───────── */
+  --gold-100:       #E8D9AE;
+  --gold-200:       #D6BE82;
+  --gold-300:       #BA9648;   /* PROJECT GOLD — softer/lighter */
+  --gold-400:       #A07A34;   /* PROJECT GOLD — primary accent */
+  --gold-500:       #7E5F26;   /* hover / underline */
+  --gold-700:       #4E3A16;
+
+  /* ─── COLOR · MOSS & COPPER (sparing secondary tints) ──────────────── */
+  --moss-400:       #6E7A4D;
+  --moss-600:       #4A5435;
+  --copper-400:     #A8602F;
+  --copper-600:     #6F3F1C;
+
+  /* ─── SEMANTIC · LIGHT theme is the default ──────────────────────────── */
+  --bg:             var(--parchment-100);   /* #E3DACB */
+  --bg-elev:        var(--parchment-50);    /* #F2EBDC — cards */
+  --bg-elev-2:      var(--parchment-200);   /* #D2C4AE — nested surfaces */
+  --bg-deep:        var(--ink-900);         /* footers, hero anchor */
+  --surface-glass:  rgba(227, 218, 203, 0.62);  /* heritage glass (translucent parchment) */
+
+  --fg:             var(--ink-900);
+  --fg-muted:       var(--stone-600);       /* #4A433B */
+  --fg-dim:         var(--stone-500);
+  --fg-faint:       var(--stone-400);
+
+  /* Inverse — type ON dark imagery (hero, footer) */
+  --fg-on-dark:        var(--parchment-50);
+  --fg-on-dark-muted:  rgba(242, 235, 220, 0.78);
+  --fg-on-dark-dim:    rgba(242, 235, 220, 0.55);
+
+  --hairline:           rgba(42, 37, 29, 0.10);    /* ink 900 at 10% */
+  --hairline-strong:    rgba(42, 37, 29, 0.18);
+  --hairline-gold:      rgba(160, 122, 52, 0.38);
+  --hairline-on-dark:   rgba(242, 235, 220, 0.16);
+
+  --accent:         var(--gold-400);              /* #A07A34 */
+  --accent-soft:    var(--gold-300);              /* #BA9648 */
+  --accent-hover:   var(--gold-500);
+  --accent-on-dark: var(--gold-200);
+
+  /* ─── TYPOGRAPHY · families ────────────────────────────────────────── */
+  --font-display:   "Cormorant Garamond", "Cormorant", "EB Garamond", Georgia, serif;
+  --font-italic:    "Instrument Serif", "Cormorant Garamond", Georgia, serif;
+  --font-sans:      "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono:      "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ─── TYPOGRAPHY · scale (editorial, restrained — not oversized) ──── */
+  --t-eyebrow:      0.72rem;
+  --t-caption:      0.8125rem;
+  --t-body-sm:      0.9375rem;
+  --t-body:         1.0625rem;
+  --t-lead:         1.25rem;
+  --t-h6:           1.125rem;
+  --t-h5:           1.375rem;
+  --t-h4:           1.625rem;
+  --t-h3:           2.125rem;
+  --t-h2:           2.875rem;     /* slightly reduced — restrained editorial */
+  --t-h1:           4.25rem;      /* slightly reduced */
+  --t-display:      clamp(3rem, 7vw, 7.5rem);
+
+  /* ─── TYPOGRAPHY · weights & rhythm ────────────────────────────────── */
+  --w-light: 300; --w-regular: 400; --w-medium: 500; --w-semibold: 600; --w-bold: 700;
+  --track-eyebrow:  0.20em;   /* slightly softer than 0.22 */
+  --track-tight:    -0.018em;
+  --track-snug:     -0.008em;
+  --track-normal:   0;
+  --track-wide:     0.04em;
+  --lh-display:     1.04;
+  --lh-tight:       1.14;
+  --lh-snug:        1.30;
+  --lh-body:        1.65;     /* spacious */
+  --lh-loose:       1.85;
+
+  /* ─── SPACING ─────────────────────────────────────────────────────── */
+  --space-1: 4px;  --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
+  --space-5: 24px; --space-6: 32px;  --space-7: 48px;  --space-8: 64px;
+  --space-9: 96px; --space-10: 128px; --space-11: 192px; --space-12: 256px;
+
+  /* ─── RADII (minimal — editorial) ─────────────────────────────────── */
+  --r-0: 0px;  --r-1: 2px;  --r-2: 4px;  --r-3: 8px;  --r-pill: 999px;
+
+  /* ─── BORDERS ─────────────────────────────────────────────────────── */
+  --border-hairline: 1px solid var(--hairline);
+  --border-strong:   1px solid var(--hairline-strong);
+  --border-gold:     1px solid var(--hairline-gold);
+
+  /* ─── SHADOWS (very soft warm shadows — almost imperceptible) ─────── */
+  --shadow-paper:   0 1px 2px rgba(42, 37, 29, 0.04), 0 8px 24px -14px rgba(42, 37, 29, 0.10);
+  --shadow-lift:    0 20px 50px -28px rgba(42, 37, 29, 0.26), 0 2px 6px rgba(42, 37, 29, 0.05);
+  --shadow-glow:    0 0 60px -22px rgba(186, 150, 72, 0.20);
+  --shadow-press:   inset 0 1px 0 0 rgba(42, 37, 29, 0.04);
+
+  /* ─── BLUR / GLASS ────────────────────────────────────────────────── */
+  --blur-glass:     blur(18px) saturate(130%);
+  --blur-soft:      blur(8px);
+
+  /* ─── MOTION (slow, atmospheric — long easings) ───────────────────── */
+  --ease-cinematic: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out-soft:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:    cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-quick: 240ms;
+  --dur-base: 420ms;
+  --dur-slow: 720ms;
+  --dur-epic: 1400ms;
+
+  /* ─── SCRIMS (gentle — never crush the photo) ─────────────────────── */
+  --scrim-top-light:    linear-gradient(180deg, rgba(42,37,29,0.22) 0%, rgba(42,37,29,0.0) 22%);
+  --scrim-bottom-light: linear-gradient(0deg,   rgba(42,37,29,0.50) 0%, rgba(42,37,29,0.10) 32%, rgba(42,37,29,0) 52%);
+  --scrim-vignette:     radial-gradient(110% 70% at 50% 115%, rgba(42,37,29,0.30) 0%, rgba(42,37,29,0) 50%);
+}
+
+/* ════════════════════════════════════════════════════════════════════════ */
+
+.ds-root, body.ds {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-weight: var(--w-regular);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.ds-h1, .ds h1 { font-family: var(--font-display); font-weight: var(--w-light); font-size: var(--t-h1); line-height: var(--lh-display); letter-spacing: var(--track-tight); color: var(--fg); text-wrap: balance; }
+.ds-h2, .ds h2 { font-family: var(--font-display); font-weight: var(--w-light); font-size: var(--t-h2); line-height: var(--lh-tight);  letter-spacing: var(--track-tight); color: var(--fg); text-wrap: balance; }
+.ds-h3, .ds h3 { font-family: var(--font-display); font-weight: var(--w-regular); font-size: var(--t-h3); line-height: var(--lh-snug); letter-spacing: var(--track-snug); color: var(--fg); }
+.ds-h4, .ds h4 { font-family: var(--font-display); font-weight: var(--w-regular); font-size: var(--t-h4); line-height: var(--lh-snug); letter-spacing: var(--track-snug); color: var(--fg); }
+.ds-h5, .ds h5 { font-family: var(--font-sans);    font-weight: var(--w-semibold); font-size: var(--t-h5); line-height: var(--lh-snug); color: var(--fg); }
+
+.ds-eyebrow { font-family: var(--font-sans); font-size: var(--t-eyebrow); font-weight: var(--w-medium); letter-spacing: var(--track-eyebrow); text-transform: uppercase; color: var(--accent); }
+.ds-lede    { font-family: var(--font-italic); font-style: italic; font-size: var(--t-lead); line-height: var(--lh-snug); color: var(--fg-muted); }
+.ds p       { font-size: var(--t-body); line-height: var(--lh-body); color: var(--fg-muted); max-width: 64ch; }
+.ds-caption { font-size: var(--t-caption); line-height: 1.5; color: var(--fg-dim); letter-spacing: var(--track-wide); }
+.ds-quote   { font-family: var(--font-italic); font-style: italic; font-weight: var(--w-regular); font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1.28; color: var(--fg); }
+
+.ds a { color: var(--accent-hover); text-decoration: none; border-bottom: 1px solid var(--hairline-gold); transition: color var(--dur-base) var(--ease-cinematic), border-color var(--dur-base) var(--ease-cinematic); }
+.ds a:hover { color: var(--ink-900); border-bottom-color: var(--ink-900); }
